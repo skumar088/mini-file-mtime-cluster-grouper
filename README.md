@@ -39,3 +39,10 @@ The trade-off: bucket boundaries are arithmetic, not calendar-aligned. Bucket 0 
 Files with mtimes in the future (newer than the clock value) raise `ValueError`. This is deliberate: a future mtime in a rotation workflow usually means a clock skew or a file that was just written, and silently stuffing it into bucket 0 would hide the problem. If you want to tolerate stale or clock-skewed files, stat them yourself and skip the grouper for those paths, or pre-filter.
 
 Stat failures (file missing, permission denied) propagate as `OSError` by default. Pass `on_stat_error=path_callable_returning_mtime` if you want fallback handling.
+
+## Performance
+
+The window keeps a bounded buffer, so `push` is constant time and memory does not
+grow with the length of the stream. `peak` and `trough` are linear in the window
+size, which is the trade that keeps `push` cheap.
+
